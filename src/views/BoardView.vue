@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Column from '../components/Column.vue';
+import CardModal from '../components/CardModal.vue';
 import { useKanban } from '../stores/kanban';
 
 const route = useRoute();
 const router = useRouter();
 const store = useKanban();
+
+const editingCard = ref<{ boardId: string; colId: string; cardId: string } | null>(null);
 
 // Route guard: keep the store in sync with the URL; repair bad ids.
 watch(
@@ -20,6 +23,11 @@ watch(
   },
   { immediate: true },
 );
+
+function openCard(colId: string, cardId: string) {
+  const boardId = store.activeBoardId;
+  if (boardId) editingCard.value = { boardId, colId, cardId };
+}
 </script>
 
 <template>
@@ -30,8 +38,16 @@ watch(
         :key="col.id"
         :board-id="store.activeBoard.id"
         :column="col"
+        @open-card="openCard"
       />
     </div>
+    <CardModal
+      v-if="editingCard"
+      :board-id="editingCard.boardId"
+      :col-id="editingCard.colId"
+      :card-id="editingCard.cardId"
+      @close="editingCard = null"
+    />
   </div>
   <p v-else class="empty-state">NO BOARD FOUND.</p>
 </template>

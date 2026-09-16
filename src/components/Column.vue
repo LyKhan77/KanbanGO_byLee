@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+// vue-draggable-next 2.3.0 ships named exports only (no default) — see task-11 report.
+import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import type { Column } from '../types';
+import KanbanCard from './KanbanCard.vue';
 import { useKanban } from '../stores/kanban';
 
 const props = defineProps<{ boardId: string; column: Column }>();
+const emit = defineEmits<{ 'open-card': [colId: string, cardId: string] }>();
 const store = useKanban();
 
 const draft = ref('');
 const overWip = computed(() => store.isOverWip(props.column));
+const filtersActive = computed(
+  () => store.filters.query.trim() !== '' || store.filters.labelIds.length > 0,
+);
+const visibleCards = computed(() => store.filteredCards(props.boardId, props.column.id));
 
 function quickAdd() {
   const title = draft.value.trim();
@@ -15,6 +23,15 @@ function quickAdd() {
     store.addCard(props.boardId, props.column.id, title);
     draft.value = '';
   }
+}
+
+function onDragChange() {
+  // SortableJS already mutated column.cards in place; bump updatedAt.
+  store.touchBoard(props.boardId);
+}
+
+function openCard(cardId: string) {
+  emit('open-card', props.column.id, cardId);
 }
 </script>
 
@@ -28,14 +45,38 @@ function quickAdd() {
       <span v-if="overWip" class="new-burst-sticker">OVER!</span>
     </header>
 
-    <ul class="card-list">
-      <li v-for="card in column.cards" :key="card.id" class="ribbon-card card">
-        <div class="ribbon-card-body" :class="`ribbon-card-body-${column.tint}`">
-          {{ card.title }}
-        </div>
-      </li>
-      <p v-if="column.cards.length === 0" class="column-empty">ADD CARD</p>
-    </ul>
+    <draggable
+      v-if="!filtersActive"
+      class="card-list"
+      :list="column.cards"
+      group="kanban"
+      @change="onDragChange"
+    >
+      <KanbanCard
+        v-for="card in column.cards"
+        :key="card.id"
+        :board-id="boardId"
+        :card="card"
+        :column="column"
+        @open="openCard(card.id)"
+      />
+    </draggable>
+    <template v-else>
+      <p class="filter-note">filters active — drag &amp; drop disabled</p>
+      <div class="card-list filtered">
+        <KanbanCard
+          v-for="card in visibleCards"
+          :key="card.id"
+          :board-id="boardId"
+          :card="card"
+          :column="column"
+          @open="openCard(card.id)"
+        />
+      </div>
+    </template>
+
+    <p v-if="!filtersActive && column.cards.length === 0" class="column-empty">ADD CARD</p>
+    <p v-else-if="filtersActive && visibleCards.length === 0" class="column-empty">no matching cards</p>
 
     <div class="column-add">
       <input
@@ -62,12 +103,13 @@ function quickAdd() {
   padding: 2px 6px;
 }
 .card-list {
-  list-style: none; margin: 0; padding: var(--sp-sm);
   border: var(--border); border-top: none;
+  padding: var(--sp-sm);
   display: flex; flex-direction: column; gap: var(--sp-sm);
   min-height: 64px;
 }
-.card { margin: 0; }
+.card-list.filtered { padding-bottom: 0; }
+.filter-note { font-style: italic; font-size: 12px; margin: 4px 0 0; }
 .column-empty { text-align: center; font-style: italic; padding: var(--sp-sm) 0; }
 .column-add { display: flex; gap: var(--sp-sm); margin-top: var(--sp-sm); }
 </style>
