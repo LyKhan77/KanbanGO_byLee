@@ -11,8 +11,11 @@ describe('isOverdue', () => {
 });
 describe('todayISO', () => {
   it('returns the local calendar date (not UTC)', () => {
-    vi.useFakeTimers({ now: Date.UTC(2026, 8, 15, 22, 30, 0) }); // 2026-09-15T22:30Z == 2026-09-16 05:30 local (UTC+7)
-    expect(todayISO()).toBe('2026-09-16');
+    const pinned = Date.UTC(2026, 8, 15, 22, 30, 0); // 2026-09-15T22:30Z; local date differs from UTC in most zones
+    vi.useFakeTimers({ now: pinned });
+    const d = new Date(pinned);
+    const p = (n: number) => String(n).padStart(2, '0');
+    expect(todayISO()).toBe(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`);
     vi.useRealTimers();
   });
 });
