@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useKanban } from './kanban';
 import { createStarterBoard } from '../utils';
+import { nextTick } from 'vue';
 
 const card = (id: string, title: string, labelIds: string[] = []) => ({
   id, title, description: '', labelIds, dueDate: null, subtasks: [], createdAt: '', updatedAt: '',
@@ -153,5 +154,77 @@ describe('store CRUD', () => {
     expect(col.wipLimit).toBeNull();
     s.setColumnTint(bid, col.id, 'olive');
     expect(col.tint).toBe('olive');
+  });
+});
+
+describe('moveCard / touchBoard', () => {
+  it('moves a card between columns at an index', () => {
+    const s = useKanban();
+    const bid = s.activeBoardId!;
+    const [a, b] = s.activeBoard!.columns;
+    s.addCard(bid, a.id, 'A1');
+    s.addCard(bid, a.id, 'A2');
+    s.addCard(bid, b.id, 'B1');
+    const a1 = a.cards[0].id;
+    s.moveCard(bid, a.id, a1, b.id, 0);
+    expect(a.cards.map(c => c.title)).toEqual(['A2']);
+    expect(b.cards.map(c => c.title)).toEqual(['A1', 'B1']);
+  });
+
+  it('reorders within the same column', () => {
+    const s = useKanban();
+    const bid = s.activeBoardId!;
+    const a = s.activeBoard!.columns[0];
+    s.addCard(bid, a.id, 'A1');
+    s.addCard(bid, a.id, 'A2');
+    const a1 = a.cards[0].id;
+    s.moveCard(bid, a.id, a1, a.id, 1);
+    expect(a.cards.map(c => c.title)).toEqual(['A2', 'A1']);
+  });
+
+  it('clamps toIndex to target bounds', () => {
+    const s = useKanban();
+    const bid = s.activeBoardId!;
+    const [a, b] = s.activeBoard!.columns;
+    s.addCard(bid, a.id, 'A1');
+    const a1 = a.cards[0].id;
+    s.moveCard(bid, a.id, a1, b.id, 99);
+    expect(b.cards.map(c => c.title)).toEqual(['A1']);
+  });
+
+  it('persistence: mutation lands in localStorage', async () => {
+    const s = useKanban();
+    const bid = s.activeBoardId!;
+    s.addCard(bid, s.activeBoard!.columns[0].id, 'persist me');
+    await nextTick(); // flush the deep watch
+    const raw = localStorage.getItem('kanbango:v1');
+    expect(raw).toContain('persist me');
+  });
+});
+
+describe('exportBoard / importBoard', () => {
+  it('exportBoard returns JSON containing the board name', () => {
+    const s = useKanban();
+    s.renameBoard(s.activeBoardId!, 'Exportable');
+    const json = s.exportBoard(s.activeBoardId!);
+    expect(json).toContain('Exportable');
+  });
+
+  it('importBoard appends a board and re-points activeBoardId', () => {
+    const s = useKanban();
+    const fromFile = createStarterBoard('From File');
+    const res = s.importBoard(JSON.stringify({ app: 'kanbango', version: 1, board: fromFile }));
+    expect(res).toEqual({ ok: true, count: 1 });
+    expect(s.boards).toHaveLength(2);
+    expect(s.activeBoardId).toBe(fromFile.id);
+  });
+
+  it('importBoard rejects malformed input and leaves state unchanged', () => {
+    const s = useKanban();
+    const before = JSON.stringify(s.boards);
+    const res = s.importBoard('{bad json');
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toBeTruthy();
+    expect(JSON.stringify(s.boards)).toBe(before);
   });
 });

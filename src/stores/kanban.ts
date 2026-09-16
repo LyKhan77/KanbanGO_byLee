@@ -167,6 +167,33 @@ export const useKanban = defineStore('kanban', () => {
     touchBoard(boardId);
   }
 
+  function moveCard(boardId: string, fromColId: string, cardId: string, toColId: string, toIndex: number): void {
+    const from = findColumn(boardId, fromColId);
+    const to = findColumn(boardId, toColId);
+    const i = from.cards.findIndex(c => c.id === cardId);
+    if (i === -1) return;
+    const [card] = from.cards.splice(i, 1);
+    const idx = Math.max(0, Math.min(toIndex, to.cards.length));
+    to.cards.splice(idx, 0, card);
+    touchBoard(boardId);
+  }
+
+  function exportBoard(boardId: string): string {
+    return storage.exportJSON(findBoard(boardId));
+  }
+
+  function importBoard(text: string): { ok: true; count: number } | { ok: false; error: string } {
+    let imported: Board[];
+    try {
+      imported = storage.importJSON(text);
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Import failed' };
+    }
+    boards.value.push(...imported);
+    if (imported.length) activeBoardId.value = imported[0].id;
+    return { ok: true, count: imported.length };
+  }
+
   function setColumnTint(boardId: string, colId: string, tint: TintKey): void {
     findColumn(boardId, colId).tint = tint;
     touchBoard(boardId);
@@ -181,5 +208,6 @@ export const useKanban = defineStore('kanban', () => {
     boards, activeBoardId, filters, saveFailed, activeBoard, findBoard, findColumn, isOverWip, filteredCards, setActiveBoard,
     touchBoard, createBoard, renameBoard, deleteBoard, addColumn, renameColumn, deleteColumn, addCard, findCard, updateCard,
     deleteCard, addLabel, deleteLabel, addSubtask, toggleSubtask, deleteSubtask, setColumnTint, setWipLimit,
+    moveCard, exportBoard, importBoard,
   };
 });
