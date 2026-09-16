@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
-import type { Board, Column, Card, KanbanState } from '../types';
-import { createStarterBoard } from '../utils';
+import type { Board, Column, Card, KanbanState, TintKey } from '../types';
+import { uid, nowISO, createStarterBoard } from '../utils';
 import * as storage from '../services/storage';
 
 function defaultState(): KanbanState {
@@ -57,5 +57,129 @@ export const useKanban = defineStore('kanban', () => {
     });
   }
 
-  return { boards, activeBoardId, filters, saveFailed, activeBoard, findBoard, findColumn, isOverWip, filteredCards, setActiveBoard };
+  function touchBoard(boardId: string): void {
+    findBoard(boardId).updatedAt = nowISO();
+  }
+
+  function createBoard(name: string): string {
+    const t = nowISO();
+    const b: Board = { id: uid(), name: name.trim() || 'Board', columns: [], labels: [], createdAt: t, updatedAt: t };
+    boards.value.push(b);
+    return b.id;
+  }
+
+  function renameBoard(id: string, name: string): void {
+    const b = findBoard(id);
+    b.name = name.trim() || b.name;
+    touchBoard(id);
+  }
+
+  function deleteBoard(id: string): void {
+    const i = boards.value.findIndex(x => x.id === id);
+    if (i === -1) return;
+    boards.value.splice(i, 1);
+    if (activeBoardId.value === id) activeBoardId.value = boards.value[0]?.id ?? null;
+  }
+
+  function addColumn(boardId: string, title: string, tint: TintKey = 'steel'): void {
+    findBoard(boardId).columns.push({ id: uid(), title: title.trim() || 'Column', tint, wipLimit: null, cards: [] });
+    touchBoard(boardId);
+  }
+
+  function renameColumn(boardId: string, colId: string, title: string): void {
+    findColumn(boardId, colId).title = title.trim() || findColumn(boardId, colId).title;
+    touchBoard(boardId);
+  }
+
+  function deleteColumn(boardId: string, colId: string): void {
+    const cols = findBoard(boardId).columns;
+    const i = cols.findIndex(x => x.id === colId);
+    if (i === -1) return;
+    cols.splice(i, 1);
+    touchBoard(boardId);
+  }
+
+  function addCard(boardId: string, colId: string, title: string): void {
+    const t = nowISO();
+    findColumn(boardId, colId).cards.push({
+      id: uid(), title: title.trim() || 'Card', description: '', labelIds: [],
+      dueDate: null, subtasks: [], createdAt: t, updatedAt: t,
+    });
+    touchBoard(boardId);
+  }
+
+  function findCard(boardId: string, cardId: string): Card {
+    const card = findBoard(boardId).columns.flatMap(c => c.cards).find(x => x.id === cardId);
+    if (!card) throw new Error('card not found: ' + cardId);
+    return card;
+  }
+
+  function updateCard(boardId: string, cardId: string, patch: Partial<Card>): void {
+    const card = findCard(boardId, cardId);
+    const safe: Partial<Card> = { ...patch };
+    delete safe.id;
+    delete safe.createdAt;
+    delete safe.updatedAt;
+    Object.assign(card, safe, { updatedAt: nowISO() });
+    touchBoard(boardId);
+  }
+
+  function deleteCard(boardId: string, colId: string, cardId: string): void {
+    const cards = findColumn(boardId, colId).cards;
+    const i = cards.findIndex(x => x.id === cardId);
+    if (i === -1) return;
+    cards.splice(i, 1);
+    touchBoard(boardId);
+  }
+
+  function addLabel(boardId: string, name: string, tint: TintKey): void {
+    findBoard(boardId).labels.push({ id: uid(), name: name.trim() || 'Label', tint });
+    touchBoard(boardId);
+  }
+
+  function deleteLabel(boardId: string, labelId: string): void {
+    const b = findBoard(boardId);
+    b.labels = b.labels.filter(l => l.id !== labelId);
+    b.columns.forEach(c => c.cards.forEach(card => {
+      card.labelIds = card.labelIds.filter(id => id !== labelId);
+    }));
+    touchBoard(boardId);
+  }
+
+  function addSubtask(boardId: string, cardId: string, title: string): void {
+    const card = findCard(boardId, cardId);
+    card.subtasks.push({ id: uid(), title: title.trim() || 'Subtask', done: false });
+    card.updatedAt = nowISO();
+    touchBoard(boardId);
+  }
+
+  function toggleSubtask(boardId: string, cardId: string, subtaskId: string): void {
+    const st = findCard(boardId, cardId).subtasks.find(x => x.id === subtaskId);
+    if (st) st.done = !st.done;
+    findCard(boardId, cardId).updatedAt = nowISO();
+    touchBoard(boardId);
+  }
+
+  function deleteSubtask(boardId: string, cardId: string, subtaskId: string): void {
+    const card = findCard(boardId, cardId);
+    card.subtasks = card.subtasks.filter(x => x.id !== subtaskId);
+    card.updatedAt = nowISO();
+    touchBoard(boardId);
+  }
+
+  function setColumnTint(boardId: string, colId: string, tint: TintKey): void {
+    findColumn(boardId, colId).tint = tint;
+    touchBoard(boardId);
+  }
+
+  function setWipLimit(boardId: string, colId: string, limit: number | null): void {
+    findColumn(boardId, colId).wipLimit = limit != null && limit > 0 ? Math.floor(limit) : null;
+    touchBoard(boardId);
+  }
+
+  return {
+    boards, activeBoardId, filters, saveFailed, activeBoard, findBoard, findColumn, isOverWip, filteredCards, setActiveBoard,
+    touchBoard, createBoard, renameBoard, deleteBoard, addColumn, renameColumn, deleteColumn, addCard, findCard, updateCard,
+    deleteCard, addLabel, deleteLabel, addSubtask, toggleSubtask, deleteSubtask, setColumnTint, setWipLimit,
+  };
 });
