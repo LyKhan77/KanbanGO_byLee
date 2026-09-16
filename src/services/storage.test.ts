@@ -17,6 +17,15 @@ describe('save/load', () => {
     localStorage.setItem('kanbango:v1', '{nope');
     expect(load()).toBeNull();
   });
+  it('load returns null when a board lacks columns[]', () => {
+    localStorage.setItem('kanbango:v1', JSON.stringify({ version: 1, boards: [{ name: 'bad' }], activeBoardId: 'x' }));
+    expect(load()).toBeNull();
+  });
+  it('load falls back to the first board for a stale activeBoardId', () => {
+    const b = createStarterBoard('B');
+    localStorage.setItem('kanbango:v1', JSON.stringify({ version: 1, boards: [b], activeBoardId: 'stale' }));
+    expect(load()?.activeBoardId).toBe(b.id);
+  });
 });
 
 describe('export/import', () => {

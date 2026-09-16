@@ -21,7 +21,13 @@ export function load(): KanbanState | null {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const p: unknown = JSON.parse(raw);
-    return isState(p) ? p : null;
+    if (!isState(p)) return null;
+    const boards = p.boards.map(normalizeBoard);
+    const activeBoardId =
+      typeof p.activeBoardId === 'string' && boards.some((b) => b.id === p.activeBoardId)
+        ? p.activeBoardId
+        : boards[0]?.id ?? null;
+    return { version: VERSION, boards, activeBoardId };
   } catch {
     return null;
   }
