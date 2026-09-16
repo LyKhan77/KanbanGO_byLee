@@ -50,6 +50,7 @@ function openCard(cardId: string) {
       class="card-list"
       :list="column.cards"
       group="kanban"
+      item-key="id"
       @change="onDragChange"
     >
       <KanbanCard
