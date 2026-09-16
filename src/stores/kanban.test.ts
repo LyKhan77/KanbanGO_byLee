@@ -52,4 +52,11 @@ describe('store core', () => {
     const s = useKanban();
     expect(s.boards[0].name).toBe('Saved');
   });
+
+  it('persists synchronously on mutation (same tick)', () => {
+    const s = useKanban();
+    s.boards[0].name = 'Renamed';
+    const raw = JSON.parse(localStorage.getItem('kanbango:v1')!);
+    expect(raw.boards[0].name).toBe('Renamed');
+  });
 });

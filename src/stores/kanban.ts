@@ -29,7 +29,7 @@ export const useKanban = defineStore('kanban', () => {
   // and it would break the instant-persistence regression test.
   watch([boards, activeBoardId], () => {
     saveFailed.value = !storage.save({ version: 1, boards: boards.value, activeBoardId: activeBoardId.value });
-  }, { deep: true });
+  }, { deep: true, flush: 'sync' });
 
   function findBoard(id: string): Board {
     const b = boards.value.find(x => x.id === id);
