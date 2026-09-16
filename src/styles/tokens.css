@@ -1,0 +1,26 @@
+/* KanbanGo tokens — Dell 1996 design system (DESIGN.md), per spec §8.1 */
+:root {
+  /* colors */
+  --c-primary: #e91d2a;      /* Dell red — CTA + callout ONLY */
+  --c-yellow:  #fcc20f;      /* sticker yellow */
+  --c-purple:  #6a26a4;
+  --c-ink:     #000000;
+  --c-canvas:  #ffffff;
+  --c-link:    #0000ee;      /* classic Mosaic link blue */
+  --c-tint-olive: #8e8a25; --c-tint-sage: #b3bd95;
+  --c-tint-salmon: #d77a7a; --c-tint-peach: #e6915d;
+  --c-tint-lime: #c0d4a7; --c-tint-sky: #9ab6c8;
+  --c-tint-steel: #a5b8c0; --c-tint-periwinkle: #8c9ae0;
+  /* type (system fonts only) */
+  --font-display: 'Arial Black', Helvetica, sans-serif;
+  --font-ui: Helvetica, Arial, sans-serif;
+  --font-body: 'Times New Roman', Times, serif;
+  /* spacing (4px base) */
+  --sp-xs: 4px; --sp-sm: 8px; --sp-md: 12px;
+  --sp-lg: 16px; --sp-xl: 20px; --sp-xxl: 24px;
+  /* shape */
+  --r-none: 0; --r-full: 9999px;
+  /* depth (hard only — no soft shadows) */
+  --border: 1px solid var(--c-ink);
+  --frame: 8px solid var(--c-ink);
+}

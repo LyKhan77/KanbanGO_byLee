@@ -1,0 +1,182 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--c-canvas);
+  color: var(--c-ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+}
+h1, h2, h3, h4, p { margin: 0; }
+a { color: var(--c-link); text-decoration: underline; }
+
+/* ---- page frame (8px black, 4px @<=768, 2px @<480 — DESIGN.md responsive) ---- */
+.page-frame { background: var(--c-ink); padding: 8px; min-height: 100vh; }
+.page-frame-inner {
+  background: var(--c-canvas);
+  min-height: calc(100vh - 16px);
+  display: flex; flex-direction: column;
+}
+@media (max-width: 768px) {
+  .page-frame { padding: 4px; }
+  .page-frame-inner { min-height: calc(100vh - 8px); }
+}
+@media (max-width: 480px) {
+  .page-frame { padding: 2px; }
+  .page-frame-inner { min-height: calc(100vh - 4px); }
+  .top-banner { flex-wrap: wrap; }
+}
+
+/* ---- top banner ---- */
+.top-banner {
+  background: var(--c-ink); color: var(--c-canvas);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 16px;
+}
+.top-banner h1 {
+  flex: 1;
+  font-family: var(--font-ui); font-weight: 700; font-size: 16px;
+  text-transform: uppercase;
+}
+.phone-callout {
+  color: var(--c-primary);
+  font-family: var(--font-ui); font-weight: 700; font-size: 16px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.sticker-yellow {
+  background: var(--c-yellow); color: var(--c-ink);
+  border: var(--border);
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+/* ---- section eyebrow (tint block + chunky title) ---- */
+.section-eyebrow {
+  font-family: var(--font-display); font-weight: 900; line-height: 1.0;
+  text-transform: uppercase; color: var(--c-ink);
+  font-size: 36px; padding: 24px 16px;
+}
+.section-eyebrow-olive { background: var(--c-tint-olive); }
+.section-eyebrow-sage { background: var(--c-tint-sage); }
+.section-eyebrow-salmon { background: var(--c-tint-salmon); }
+.section-eyebrow-peach { background: var(--c-tint-peach); }
+.section-eyebrow-lime { background: var(--c-tint-lime); }
+.section-eyebrow-sky { background: var(--c-tint-sky); }
+.section-eyebrow-steel { background: var(--c-tint-steel); }
+.section-eyebrow-periwinkle { background: var(--c-tint-periwinkle); }
+
+/* ---- ribbon card ---- */
+.ribbon-card { border: var(--border); border-radius: var(--r-none); background: var(--c-canvas); }
+.ribbon-card-title {
+  background: var(--c-canvas); color: var(--c-ink);
+  border-bottom: var(--border);
+  font-family: var(--font-ui); font-weight: 700; font-size: 14px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+}
+.ribbon-card-body { font-family: var(--font-body); font-size: 14px; padding: 12px 16px; }
+.ribbon-card-body-olive { background: var(--c-tint-olive); }
+.ribbon-card-body-sage { background: var(--c-tint-sage); }
+.ribbon-card-body-salmon { background: var(--c-tint-salmon); }
+.ribbon-card-body-peach { background: var(--c-tint-peach); }
+.ribbon-card-body-lime { background: var(--c-tint-lime); }
+.ribbon-card-body-sky { background: var(--c-tint-sky); }
+.ribbon-card-body-steel { background: var(--c-tint-steel); }
+.ribbon-card-body-periwinkle { background: var(--c-tint-periwinkle); }
+
+/* ---- buttons (0 radius, hard border, no shadow) ---- */
+.button-primary {
+  background: var(--c-ink); color: var(--c-canvas);
+  border: var(--border); border-radius: var(--r-none);
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  text-transform: uppercase;
+  padding: 6px 16px; cursor: pointer;
+}
+.button-secondary {
+  background: var(--c-canvas); color: var(--c-ink);
+  border: var(--border); border-radius: var(--r-none);
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  text-transform: uppercase;
+  padding: 6px 16px; cursor: pointer;
+}
+.button-text-link {
+  background: none; border: none; padding: 0;
+  color: var(--c-link); text-decoration: underline;
+  font-family: var(--font-body); font-size: 14px;
+  cursor: pointer;
+}
+
+/* ---- inputs ---- */
+.text-input {
+  background: var(--c-canvas); color: var(--c-ink);
+  border: var(--border); border-radius: var(--r-none);
+  font-family: var(--font-body); font-size: 14px;
+  padding: 4px 6px;
+}
+
+/* ---- stickers ---- */
+.new-burst-sticker {
+  background: var(--c-yellow); color: var(--c-ink);
+  border: var(--border); border-radius: var(--r-none);
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  padding: 4px 8px;
+  display: inline-block;
+  transform: rotate(15deg);
+}
+
+/* ---- label chips (tint fill, hard border) ---- */
+.label-chip {
+  border: var(--border); border-radius: var(--r-none);
+  font-family: var(--font-ui); font-weight: 700; font-size: 11px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  display: inline-block;
+}
+.label-chip-olive { background: var(--c-tint-olive); }
+.label-chip-sage { background: var(--c-tint-sage); }
+.label-chip-salmon { background: var(--c-tint-salmon); }
+.label-chip-peach { background: var(--c-tint-peach); }
+.label-chip-lime { background: var(--c-tint-lime); }
+.label-chip-sky { background: var(--c-tint-sky); }
+.label-chip-steel { background: var(--c-tint-steel); }
+.label-chip-periwinkle { background: var(--c-tint-periwinkle); }
+
+/* ---- footer ---- */
+.footer-band {
+  background: var(--c-canvas); color: var(--c-ink);
+  border-top: var(--border);
+  font-family: var(--font-body); font-size: 12px;
+  padding: 16px;
+}
+.icon-label-nav { display: flex; gap: 24px; margin-bottom: 8px; }
+.icon-label-nav a, .icon-label-nav span {
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  text-transform: uppercase;
+}
+.footer-copy { margin-top: 4px; }
+
+/* ---- error line (classic-blue underlined, per spec §9) ---- */
+.error-line { color: var(--c-link); text-decoration: underline; margin-top: 8px; }
+
+/* ---- empty state ---- */
+.empty-state {
+  border: var(--border); border-radius: var(--r-none);
+  padding: 24px; text-align: center;
+  font-family: var(--font-body); font-size: 14px;
+}
+
+/* ---- modal (solid black backdrop — no opacity, no soft shadow) ---- */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: var(--c-ink);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-card {
+  background: var(--c-canvas); color: var(--c-ink);
+  border: var(--border); border-radius: var(--r-none);
+  width: calc(100% - 32px); max-width: 560px;
+  max-height: calc(100vh - 64px); overflow: auto;
+}
