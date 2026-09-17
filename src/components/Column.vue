@@ -4,6 +4,7 @@ import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import type { Column, TintKey } from '../types';
 import { TINTS } from '../types';
 import KanbanCard from './KanbanCard.vue';
+import ConfirmDialog from './ConfirmDialog.vue';
 import { useKanban } from '../stores/kanban';
 
 const props = defineProps<{ boardId: string; column: Column }>();
@@ -57,10 +58,18 @@ function clearWip() {
   store.setWipLimit(props.boardId, props.column.id, null);
 }
 
+const confirmOpen = ref(false);
+const deleteMessage = computed(
+  () => `Delete column "${props.column.title}" and its ${props.column.cards.length} card(s)?`,
+);
+
 function delColumn() {
-  if (confirm(`Delete column "${props.column.title}" and its ${props.column.cards.length} card(s)?`)) {
-    store.deleteColumn(props.boardId, props.column.id);
-  }
+  confirmOpen.value = true;
+}
+
+function doDeleteColumn() {
+  store.deleteColumn(props.boardId, props.column.id);
+  confirmOpen.value = false;
 }
 </script>
 
@@ -149,6 +158,12 @@ function delColumn() {
       />
       <button class="button-secondary" @click="quickAdd">ADD</button>
     </div>
+    <ConfirmDialog
+      v-if="confirmOpen"
+      :message="deleteMessage"
+      @confirm="doDeleteColumn"
+      @cancel="confirmOpen = false"
+    />
   </section>
 </template>
 

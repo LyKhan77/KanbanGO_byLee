@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Board } from '../types';
 import { useKanban } from '../stores/kanban';
+import ConfirmDialog from './ConfirmDialog.vue';
 
 const props = defineProps<{ board: Board }>();
 const store = useKanban();
@@ -27,10 +28,16 @@ function saveRename() {
   editing.value = false;
 }
 
+const confirmOpen = ref(false);
+const deleteMessage = computed(() => `Delete board "${props.board.name}"? This cannot be undone.`);
+
 function remove() {
-  if (confirm(`Delete board "${props.board.name}"? This cannot be undone.`)) {
-    store.deleteBoard(props.board.id);
-  }
+  confirmOpen.value = true;
+}
+
+function doDelete() {
+  store.deleteBoard(props.board.id);
+  confirmOpen.value = false;
 }
 
 function cardCount(b: Board): number {
@@ -56,6 +63,12 @@ function cardCount(b: Board): number {
         <button class="button-text-link" @click="remove">DELETE</button>
       </span>
     </div>
+    <ConfirmDialog
+      v-if="confirmOpen"
+      :message="deleteMessage"
+      @confirm="doDelete"
+      @cancel="confirmOpen = false"
+    />
   </article>
 </template>
 

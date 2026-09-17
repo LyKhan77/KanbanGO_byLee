@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-17 — Modal confirmation dialog
+
+### Context
+- User request: every destructive confirmation must use a modal (retro design system), replacing native `confirm()`.
+
+### Changed
+- New `src/components/ConfirmDialog.vue`: retro modal — `role="alertdialog"`, "ARE YOU SURE?" ribbon, CANCEL autofocused, Escape closes, backdrop click cancels.
+- Replaced native `confirm()` at all three destructive call sites: board delete (`src/components/BoardRow.vue`), column delete (`src/components/Column.vue`), card delete (`src/components/CardModal.vue` — nested above the card modal).
+- Card delete message aligned with board wording: `Delete this card? This cannot be undone.`
+
+### Evidence
+- `npm test` → 36/36 pass; `npm run build` (vue-tsc -b + vite) exit 0.
+- Live browser: all three dialogs render as `alertdialog`; Escape and CANCEL cancel without deleting; confirm deletes board/column/card; card dialog renders above the open card modal.
+
+### Impact
+- UI only; store logic unchanged. Card confirm message text gained "This cannot be undone."
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-17 — UI/UX quick wins
 
 ### Context

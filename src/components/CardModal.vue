@@ -4,6 +4,7 @@ import { useKanban } from '../stores/kanban';
 import { isOverdue } from '../utils';
 import LabelPicker from './LabelPicker.vue';
 import SubtaskList from './SubtaskList.vue';
+import ConfirmDialog from './ConfirmDialog.vue';
 
 const props = defineProps<{ boardId: string; colId: string; cardId: string }>();
 const emit = defineEmits<{ close: [] }>();
@@ -24,11 +25,16 @@ function save() {
   emit('close');
 }
 
+const confirmOpen = ref(false);
+
 function remove() {
-  if (confirm('Delete this card?')) {
-    store.deleteCard(props.boardId, props.colId, props.cardId);
-    emit('close');
-  }
+  confirmOpen.value = true;
+}
+
+function doDelete() {
+  store.deleteCard(props.boardId, props.colId, props.cardId);
+  confirmOpen.value = false;
+  emit('close');
 }
 
 function toggleLabel(labelId: string) {
@@ -82,6 +88,12 @@ function toggleLabel(labelId: string) {
         <button class="button-primary" @click="save">SAVE</button>
       </footer>
     </div>
+    <ConfirmDialog
+      v-if="confirmOpen"
+      message="Delete this card? This cannot be undone."
+      @confirm="doDelete"
+      @cancel="confirmOpen = false"
+    />
   </div>
 </template>
 
