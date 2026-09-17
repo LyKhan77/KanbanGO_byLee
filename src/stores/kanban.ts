@@ -189,7 +189,12 @@ export const useKanban = defineStore('kanban', () => {
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Import failed' };
     }
-    boards.value.push(...imported);
+    // merge by id: re-importing a board replaces it instead of duplicating it
+    for (const b of imported) {
+      const i = boards.value.findIndex((x) => x.id === b.id);
+      if (i === -1) boards.value.push(b);
+      else boards.value[i] = b;
+    }
     if (imported.length) activeBoardId.value = imported[0].id;
     return { ok: true, count: imported.length };
   }

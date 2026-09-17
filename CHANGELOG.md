@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-09-17 — UI/UX quick wins
+
+### Context
+- Post-launch UI/UX review (live browser testing + code audit). The Dell 1996 design system (DESIGN.md) stays untouched; four targeted UX fixes.
+
+### Changed
+- Empty state for boards with no columns: `NO COLUMNS YET — USE "+ ADD COLUMN" IN THE BANNER ABOVE.` (`src/views/BoardView.vue`).
+- Import now merges by board id: re-importing an existing board replaces it instead of creating a silent duplicate row (`src/stores/kanban.ts`, `importBoard`).
+- Card title hover changed from sticker yellow to a neutral 2px ink outline — yellow stays reserved for sticker chrome (OVERDUE / OVER! / NEW) (`src/components/KanbanCard.vue`).
+- `aria-label` added to placeholder-only inputs so screen readers keep a stable accessible name while typing (board name, search cards, add a card, column title ×2, WIP limit, new label) (`src/components/BoardListBanner.vue`, `src/views/BoardView.vue`, `src/components/Column.vue`, `src/components/BoardBanner.vue`, `src/components/LabelPicker.vue`).
+
+### Evidence
+- `npm test` → 36/36 pass (new test: importing the same file twice replaces instead of duplicating).
+- `npm run build` → exit 0; built CSS contains `.card-title:hover { outline: 2px solid var(--c-ink); outline-offset: -2px }`.
+- Live browser: new board renders the empty state; importing one file twice leaves a single board row; search input exposed as `textbox "search cards"` in the accessibility tree.
+
+### Impact
+- UX/a11y only. Export JSON format unchanged (imports stay compatible with old exports).
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-17 — Dev server port
 
 ### Changed

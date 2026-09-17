@@ -37,7 +37,7 @@ function createLabel() {
       <span v-if="labels.length === 0" class="muted-note">no labels yet</span>
     </div>
     <div class="chip-create">
-      <input class="text-input" v-model="newLabel" placeholder="new label" />
+      <input class="text-input" v-model="newLabel" placeholder="new label" aria-label="new label" />
       <select class="text-input" v-model="newTint">
         <option v-for="t in TINTS" :key="t" :value="t">{{ t }}</option>
       </select>

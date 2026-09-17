@@ -79,7 +79,7 @@ function delColumn() {
 
     <div v-if="menuOpen" class="column-menu">
       <div class="menu-row">
-        <input class="text-input" v-model="renameDraft" placeholder="column title" />
+        <input class="text-input" v-model="renameDraft" placeholder="column title" aria-label="column title" />
         <button type="button" class="button-secondary" @click="saveRename">RENAME</button>
       </div>
       <div class="menu-row">
@@ -92,7 +92,7 @@ function delColumn() {
         </select>
       </div>
       <div class="menu-row">
-        <input class="text-input" v-model="wipDraft" type="number" min="1" placeholder="WIP limit" />
+        <input class="text-input" v-model="wipDraft" type="number" min="1" placeholder="WIP limit" aria-label="WIP limit" />
         <button type="button" class="button-secondary" @click="setWip">SET</button>
         <button v-if="column.wipLimit != null" type="button" class="button-text-link" @click="clearWip">
           CLEAR
@@ -144,6 +144,7 @@ function delColumn() {
         class="text-input"
         v-model="draft"
         placeholder="add a card…"
+        aria-label="add a card"
         @keyup.enter="quickAdd"
       />
       <button class="button-secondary" @click="quickAdd">ADD</button>

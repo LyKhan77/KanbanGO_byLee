@@ -18,7 +18,7 @@ function create() {
 
 <template>
   <div class="banner-new-board">
-    <input class="text-input" v-model="name" placeholder="board name" />
+    <input class="text-input" v-model="name" placeholder="board name" aria-label="board name" />
     <button class="sticker-yellow" @click="create">NEW BOARD</button>
   </div>
 </template>

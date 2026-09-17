@@ -219,6 +219,17 @@ describe('exportBoard / importBoard', () => {
     expect(s.activeBoardId).toBe(fromFile.id);
   });
 
+  it('importBoard replaces a board with an existing id instead of duplicating it', () => {
+    const s = useKanban();
+    const fromFile = createStarterBoard('From File');
+    const payload = JSON.stringify({ app: 'kanbango', version: 1, board: fromFile });
+    expect(s.importBoard(payload)).toEqual({ ok: true, count: 1 });
+    const before = s.boards.length;
+    expect(s.importBoard(payload)).toEqual({ ok: true, count: 1 });
+    expect(s.boards).toHaveLength(before);
+    expect(s.boards.filter((b) => b.id === fromFile.id)).toHaveLength(1);
+  });
+
   it('importBoard rejects malformed input and leaves state unchanged', () => {
     const s = useKanban();
     const before = JSON.stringify(s.boards);

@@ -94,7 +94,7 @@ function onFilePicked(e: Event) {
       + ADD COLUMN
     </button>
     <form v-else class="add-form" @submit.prevent="add">
-      <input class="text-input" v-model="title" placeholder="column title" autofocus />
+      <input class="text-input" v-model="title" placeholder="column title" aria-label="column title" autofocus />
       <select class="text-input" v-model="tint">
         <option v-for="t in TINTS" :key="t" :value="t">{{ t }}</option>
       </select>

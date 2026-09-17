@@ -53,6 +53,7 @@ function clearFilters() {
         class="text-input toolbar-search"
         v-model="store.filters.query"
         placeholder="search cards…"
+        aria-label="search cards"
       />
       <div v-if="store.activeBoard.labels.length" class="toolbar-labels">
         <button
@@ -68,6 +69,10 @@ function clearFilters() {
         CLEAR FILTERS
       </button>
     </div>
+
+    <p v-if="store.activeBoard.columns.length === 0" class="empty-state">
+      NO COLUMNS YET — USE "+ ADD COLUMN" IN THE BANNER ABOVE.
+    </p>
 
     <div class="board-columns">
       <Column

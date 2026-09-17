@@ -54,7 +54,8 @@ const overdue = computed(() => isOverdue(props.card.dueDate));
   border-bottom: 2px dotted var(--c-ink);
 }
 .kanban-card:active .card-title { cursor: grabbing; }
-.card-title:hover { background: var(--c-yellow); }
+/* neutral hover — yellow is reserved for sticker chrome (OVERDUE / OVER! / NEW) */
+.card-title:hover { outline: 2px solid var(--c-ink); outline-offset: -2px; }
 .card-body { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
 .card-labels { display: flex; flex-wrap: wrap; gap: 4px; }
 .card-foot {
