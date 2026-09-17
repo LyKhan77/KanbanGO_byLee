@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Column from '../components/Column.vue';
 import CardModal from '../components/CardModal.vue';
@@ -10,6 +10,10 @@ const router = useRouter();
 const store = useKanban();
 
 const editingCard = ref<{ boardId: string; colId: string; cardId: string } | null>(null);
+
+const filtersActive = computed(
+  () => store.filters.query.trim() !== '' || store.filters.labelIds.length > 0,
+);
 
 // Route guard: keep the store in sync with the URL; repair bad ids.
 watch(
@@ -28,10 +32,43 @@ function openCard(colId: string, cardId: string) {
   const boardId = store.activeBoardId;
   if (boardId) editingCard.value = { boardId, colId, cardId };
 }
+
+function toggleFilterLabel(labelId: string) {
+  const cur = store.filters.labelIds;
+  store.filters.labelIds = cur.includes(labelId)
+    ? cur.filter((x) => x !== labelId)
+    : [...cur, labelId];
+}
+
+function clearFilters() {
+  store.filters.query = '';
+  store.filters.labelIds = [];
+}
 </script>
 
 <template>
   <div v-if="store.activeBoard" class="board-page">
+    <div class="board-toolbar">
+      <input
+        class="text-input toolbar-search"
+        v-model="store.filters.query"
+        placeholder="search cards…"
+      />
+      <div v-if="store.activeBoard.labels.length" class="toolbar-labels">
+        <button
+          v-for="l in store.activeBoard.labels"
+          :key="l.id"
+          type="button"
+          class="label-chip chip-toggle"
+          :class="[`label-chip-${l.tint}`, { 'chip-active': store.filters.labelIds.includes(l.id) }]"
+          @click="toggleFilterLabel(l.id)"
+        >{{ l.name }}</button>
+      </div>
+      <button v-if="filtersActive" type="button" class="button-text-link" @click="clearFilters">
+        CLEAR FILTERS
+      </button>
+    </div>
+
     <div class="board-columns">
       <Column
         v-for="col in store.activeBoard.columns"
@@ -41,6 +78,7 @@ function openCard(colId: string, cardId: string) {
         @open-card="openCard"
       />
     </div>
+
     <CardModal
       v-if="editingCard"
       :board-id="editingCard.boardId"
@@ -53,6 +91,14 @@ function openCard(colId: string, cardId: string) {
 </template>
 
 <style scoped>
+.board-toolbar {
+  display: flex; gap: var(--sp-md); align-items: center; flex-wrap: wrap;
+  margin-bottom: var(--sp-lg);
+}
+.toolbar-search { width: 240px; }
+.toolbar-labels { display: flex; gap: var(--sp-xs); flex-wrap: wrap; }
+.chip-toggle { cursor: pointer; }
+.chip-active { outline: 2px solid var(--c-ink); outline-offset: 1px; }
 .board-columns {
   display: flex; align-items: flex-start; gap: var(--sp-lg);
   overflow-x: auto; padding-bottom: var(--sp-md);
