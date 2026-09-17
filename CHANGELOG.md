@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-17 — Dev server port
+
+### Changed
+- Vite dev server now runs on port 5454 (`vite.config.ts`).
+
+### Evidence
+- `curl http://localhost:5454/` → HTTP 200.
+
+### Impact
+- Dev-only. `npm run build` / preview unchanged.
+
+### Rollback
+- Remove `server: { port: 5454 }` from `vite.config.ts`.
+
 ## 2026-09-16 — KanbanGo v1.0
 
 ### Added
