@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-17 — Card modal keyboard & a11y
+
+### Context
+- Cluster B: the card edit modal was pointer-only (close via backdrop or SAVE). Brought in line with the ConfirmDialog pattern shipped the same day.
+
+### Changed
+- `src/components/CardModal.vue`: `role="dialog"` + `aria-modal` + `aria-label="Edit card"`; CANCEL button in footer; Escape closes; focus moves to the title input on open (programmatic — HTML `autofocus` is ignored on dynamically rendered elements); focus returns to the previously focused element (the card button) on close.
+- `src/components/ConfirmDialog.vue`: `@keydown.esc.stop` so Escape in a nested confirm closes only the confirm, not the card modal below.
+
+### Evidence
+- `npm test` → 36/36 pass; `npm run build` exit 0.
+- Live browser: a11y tree shows `dialog "Edit card"`; focus lands on the title input when opened; Escape closes the modal; CANCEL closes the modal; Escape while the confirm is open closes only the confirm; focus returns to the card button after closing.
+
+### Impact
+- UI only; store logic unchanged.
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-17 — Modal confirmation dialog
 
 ### Context

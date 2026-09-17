@@ -14,7 +14,8 @@ onMounted(() => cancelRef.value?.focus());
 </script>
 
 <template>
-  <div class="modal-backdrop" @click.self="emit('cancel')" @keydown.esc="emit('cancel')">
+  <!-- .stop so Escape inside a nested confirm does not also close the modal below -->
+  <div class="modal-backdrop" @click.self="emit('cancel')" @keydown.esc.stop="emit('cancel')">
     <div class="modal-card confirm-card" role="alertdialog">
       <header class="ribbon-card-title">ARE YOU SURE?</header>
       <p class="confirm-message">{{ message }}</p>

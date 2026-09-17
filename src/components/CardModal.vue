@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useKanban } from '../stores/kanban';
 import { isOverdue } from '../utils';
 import LabelPicker from './LabelPicker.vue';
@@ -9,6 +9,18 @@ import ConfirmDialog from './ConfirmDialog.vue';
 const props = defineProps<{ boardId: string; colId: string; cardId: string }>();
 const emit = defineEmits<{ close: [] }>();
 const store = useKanban();
+
+// Remember where focus came from so it can go back when the modal closes.
+let previouslyFocused: HTMLElement | null = null;
+const titleInput = ref<HTMLInputElement>();
+onMounted(() => {
+  previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  // HTML autofocus is ignored on dynamically rendered elements — focus explicitly.
+  titleInput.value?.focus();
+});
+onBeforeUnmount(() => {
+  previouslyFocused?.focus();
+});
 
 const card = computed(() => store.findCard(props.boardId, props.cardId));
 const title = ref(card.value.title);
@@ -47,13 +59,13 @@ function toggleLabel(labelId: string) {
 </script>
 
 <template>
-  <div class="modal-backdrop" @click.self="emit('close')">
-    <div class="modal-card">
+  <div class="modal-backdrop" @click.self="emit('close')" @keydown.esc="emit('close')">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="Edit card">
       <header class="ribbon-card-title">EDIT CARD</header>
       <div class="modal-body">
         <label class="field">
           <span class="field-label">TITLE</span>
-          <input class="text-input" v-model="title" />
+          <input ref="titleInput" class="text-input" v-model="title" />
         </label>
         <label class="field">
           <span class="field-label">DESCRIPTION</span>
@@ -84,6 +96,7 @@ function toggleLabel(labelId: string) {
       <footer class="modal-foot">
         <span v-if="isOverdue(card.dueDate)" class="new-burst-sticker">OVERDUE</span>
         <span class="spacer" />
+        <button class="button-secondary" @click="emit('close')">CANCEL</button>
         <button class="button-text-link" @click="remove">DELETE CARD</button>
         <button class="button-primary" @click="save">SAVE</button>
       </footer>
