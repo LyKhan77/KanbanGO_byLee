@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-18 — Footer trimmed to EXPORT + IMPORT
+
+### Context
+- After the nav package, the footer BOARDS link was redundant (breadcrumb `HOME | BOARDS | name` is the back affordance) and the decorative SUPPORT span added nothing.
+
+### Changed
+- `src/components/AppShell.vue`: removed footer BOARDS `RouterLink` and SUPPORT span; footer nav is now just EXPORT and IMPORT buttons.
+- `src/styles/global.css`: removed the now-dead `.icon-label-nav a/span` rules; added `.sticker-yellow:disabled` (grey) so the disabled EXPORT state is visible.
+
+### Evidence
+- `npm test` → 39/39; `npm run build` exit 0.
+- Live: footer nav items = `EXPORT, IMPORT` only; EXPORT disabled + grey (`rgb(153,153,153)`) on the list page; board page breadcrumb `HOME|BOARDS|My Board` intact and EXPORT enabled.
+
+### Impact
+- Navigation back to the list still works via the breadcrumb. Footer is action-only.
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-18 — Navigation package: breadcrumb, board switcher, real footer EXPORT/IMPORT, copy board link
 
 ### Context

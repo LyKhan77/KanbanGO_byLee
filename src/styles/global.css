@@ -170,15 +170,7 @@ a { color: var(--c-link); text-decoration: underline; }
   padding: 16px;
 }
 .icon-label-nav { display: flex; gap: 24px; margin-bottom: 8px; }
-.icon-label-nav a, .icon-label-nav span {
-  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
-  text-transform: uppercase;
-  color: #555; /* dim: decorative labels + inactive link (D-14c) */
-  text-decoration: none;
-}
-.icon-label-nav a.router-link-active {
-  color: var(--c-ink); text-decoration: underline; /* current page stands out */
-}
+.sticker-yellow:disabled { background: #999; color: #222; cursor: not-allowed; }
 .footer-copy { margin-top: 4px; }
 
 /* ---- error line (classic-blue underlined, per spec §9) ---- */

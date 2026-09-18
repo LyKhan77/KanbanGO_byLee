@@ -79,7 +79,6 @@ function onFilePicked(e: Event) {
 
       <footer class="footer-band">
         <nav class="icon-label-nav">
-          <RouterLink to="/">BOARDS</RouterLink>
           <button type="button" class="sticker-yellow" :disabled="!onBoard || !store.activeBoardId" @click="doExport">
             EXPORT
           </button>
@@ -93,7 +92,6 @@ function onFilePicked(e: Event) {
             class="file-input"
             @change="onFilePicked"
           />
-          <span>SUPPORT</span>
         </nav>
         <p v-if="store.saveFailed" class="error-line">
           Storage is full or unavailable — export your board to keep a copy. Data stays in memory for this session.
