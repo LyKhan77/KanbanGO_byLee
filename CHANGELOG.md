@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-18 — MOVE TO column in card modal + 44px touch targets
+
+### Context
+- Cluster C: drag-and-drop stays the primary move mechanism, but cards had no keyboard or mouse alternative for moving a card between columns. Interactive controls also measured ~32-36px tall, below the 44px comfortable touch target.
+
+### Changed
+- `src/components/CardModal.vue`: new `MOVE TO` select (lists all board columns, current column preselected, changing it appends the card to the end of the target column). Tracks the card's live column in `currentColId` so DELETE still targets the right column after a move (previously `props.colId` went stale — a silent no-op delete after moving). `card` computed made null-tolerant (searches boards directly instead of `store.findCard()`), fixing a re-render throw after the card is deleted.
+- `src/components/CardModal.test.ts` (new): 3 component tests — move via select appends at end, selecting the current column is a no-op, delete works after a move (regression for the stale-column no-op).
+- `src/styles/global.css`: `min-height: 44px` on primary/secondary buttons, text-link buttons, menu toggles, text inputs, chip toggles, and footer nav links (padding already centered content vertically).
+
+### Evidence
+- `npm test` → 39/39 pass; `npm run build` exit 0.
+- Live browser (throwaway test board, deleted afterwards): select lists both columns; changing it moved the card (source 0 / target 1, end position); measured heights all exactly 44px (modal SAVE, column menu toggle, footer nav link, modal input). User's live board untouched.
+
+### Impact
+- UI + one store call path; no schema change. Delete in the modal now works after a move (was a silent no-op).
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-17 — Card modal keyboard & a11y
 
 ### Context

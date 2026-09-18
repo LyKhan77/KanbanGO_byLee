@@ -23,6 +23,17 @@ onBeforeUnmount(() => {
 });
 
 const card = computed(() => store.findCard(props.boardId, props.cardId));
+const columns = computed(() => store.findBoard(props.boardId).columns);
+// The colId prop goes stale once the card moves — track the live column.
+const currentColId = ref(props.colId);
+
+function onMoveTo(colId: string) {
+  if (colId === currentColId.value) return;
+  const target = store.findColumn(props.boardId, colId);
+  // Keyboard DnD alternative: append at the end of the target column.
+  store.moveCard(props.boardId, currentColId.value, props.cardId, colId, target.cards.length);
+  currentColId.value = colId;
+}
 const title = ref(card.value.title);
 const description = ref(card.value.description);
 const dueDate = ref<string | null>(card.value.dueDate);
@@ -44,7 +55,7 @@ function remove() {
 }
 
 function doDelete() {
-  store.deleteCard(props.boardId, props.colId, props.cardId);
+  store.deleteCard(props.boardId, currentColId.value, props.cardId);
   confirmOpen.value = false;
   emit('close');
 }
@@ -80,6 +91,17 @@ function toggleLabel(labelId: string) {
             @input="dueDate = ($event.target as HTMLInputElement).value || null"
           />
         </label>
+        <div class="field">
+          <span class="field-label">MOVE TO</span>
+          <select
+            class="text-input"
+            :value="currentColId"
+            aria-label="move to column"
+            @change="onMoveTo(($event.target as HTMLSelectElement).value)"
+          >
+            <option v-for="c in columns" :key="c.id" :value="c.id">{{ c.title }}</option>
+          </select>
+        </div>
         <div class="field">
           <span class="field-label">LABELS</span>
           <LabelPicker

@@ -117,6 +117,13 @@ a { color: var(--c-link); text-decoration: underline; }
   padding: 4px 6px;
 }
 
+/* ---- touch targets: 44px minimum hit height (cluster C) ---- */
+.button-primary, .button-secondary, .button-text-link,
+.menu-toggle, .text-input, .chip-toggle,
+.icon-label-nav a {
+  min-height: 44px;
+}
+
 /* ---- stickers ---- */
 .new-burst-sticker {
   background: var(--c-yellow); color: var(--c-ink);
