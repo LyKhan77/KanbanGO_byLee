@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import type { Card, Column } from '../types';
 import { useKanban } from '../stores/kanban';
 import { isOverdue } from '../utils';
@@ -16,6 +16,7 @@ const labels = computed(() =>
 );
 const doneCount = computed(() => props.card.subtasks.filter((s) => s.done).length);
 const overdue = computed(() => isOverdue(props.card.dueDate));
+const expanded = ref(false); // not persisted — YAGNI until someone wants it
 </script>
 
 <template>
@@ -32,6 +33,7 @@ const overdue = computed(() => isOverdue(props.card.dueDate));
           :class="`label-chip-${l.tint}`"
         >{{ l.name }}</span>
       </div>
+      <p v-if="expanded && card.description" class="card-desc">{{ card.description }}</p>
       <div class="card-foot">
         <span v-if="card.dueDate" class="due" :class="{ 'due-overdue': overdue }">
           due {{ card.dueDate }}
@@ -40,6 +42,14 @@ const overdue = computed(() => isOverdue(props.card.dueDate));
           {{ doneCount }}/{{ card.subtasks.length }}
         </span>
         <span v-if="overdue" class="new-burst-sticker">OVERDUE</span>
+        <button
+          v-if="card.description"
+          type="button"
+          class="button-text-link card-more"
+          @click="expanded = !expanded"
+        >
+          {{ expanded ? 'LESS' : 'MORE' }}
+        </button>
       </div>
     </div>
   </article>
@@ -65,4 +75,8 @@ const overdue = computed(() => isOverdue(props.card.dueDate));
 /* overdue = bold + yellow (never red — design rule) */
 .due-overdue { font-weight: 700; background: var(--c-yellow); padding: 0 4px; }
 .subtask-count { font-family: var(--font-ui); font-weight: 700; }
+.card-desc {
+  font-family: var(--font-body); font-size: 12px; line-height: 1.4;
+  white-space: pre-wrap; /* keep line breaks typed in the modal textarea */
+}
 </style>

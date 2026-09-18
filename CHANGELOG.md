@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-18 — Card expand/hide description (MORE/LESS)
+
+### Context
+- Card description was only visible inside the card modal; users wanted to peek at it on the card itself.
+
+### Changed
+- `src/components/KanbanCard.vue`: per-card local `expanded` state; `MORE`/`LESS` toggle (`button-text-link`, 44px via global rule) shown only when the card has a description; description block rendered with `white-space: pre-wrap` so textarea line breaks survive.
+- `src/components/KanbanCard.test.ts` (new): 2 tests — MORE reveals / LESS hides; no toggle when description empty.
+
+### Evidence
+- `npm test` → 41/41; `npm run build` exit 0.
+- Live (disposable board, deleted afterwards; user board intact — 2 cards): card with description showed `MORE`, click revealed the two-line description with line break preserved, label flipped to `LESS`, click hid it again; toggle height 44px.
+
+### Impact
+- Expand state is per-view (not persisted) — deliberate; add to the store only if it needs to survive drags/reloads.
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-18 — Footer trimmed to EXPORT + IMPORT
 
 ### Context
