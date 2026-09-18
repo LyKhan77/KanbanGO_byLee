@@ -98,6 +98,7 @@ function onFilePicked(e: Event) {
       <select class="text-input" v-model="tint">
         <option v-for="t in TINTS" :key="t" :value="t">{{ t }}</option>
       </select>
+      <span class="tint-swatch" :class="`tint-swatch-${tint}`" :title="`tint: ${tint}`"></span>
       <button type="submit" class="sticker-yellow">ADD</button>
       <button type="button" class="button-text-link banner-link" @click="open = false">CANCEL</button>
     </form>

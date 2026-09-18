@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-18 — Tint swatches + footer nav dim (cluster D remainder)
+
+### Context
+- Cluster D remainder: choosing a column tint was text-only (a word in a select with no color cue), and the footer nav links read as equally important — no visual cue for the current page.
+
+### Changed
+- `src/styles/global.css`: new `.tint-swatch` + `.tint-swatch-<tint>` (×8) styles; footer nav links/labels dimmed to `#555` (Win95 grey), `a.router-link-active` rendered in ink with underline so the current page stands out.
+- `src/components/Column.vue`: live tint swatch beside the tint select in the column menu (shows the column's current tint).
+- `src/components/BoardBanner.vue`: live tint swatch beside the tint select in the add-column form (follows the draft selection).
+
+### Evidence
+- `npm test` → 39/39 pass; `npm run build` exit 0.
+- Live browser (read-only on user's board; draft-only in add form, cancelled): menu swatch class `tint-swatch-olive` with bg `rgb(142, 138, 37)` = `--c-tint-olive`; form swatch followed the select from steel → periwinkle; footer BOARDS dimmed `rgb(85,85,85)`/no underline on board page, ink + underline on the boards page.
+
+### Impact
+- Presentation only; no store or data changes.
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-18 — MOVE TO column in card modal + 44px touch targets
 
 ### Context

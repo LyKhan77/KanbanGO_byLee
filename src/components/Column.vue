@@ -99,6 +99,7 @@ function doDeleteColumn() {
         >
           <option v-for="t in TINTS" :key="t" :value="t">{{ t }}</option>
         </select>
+        <span class="tint-swatch" :class="`tint-swatch-${column.tint}`" :title="`tint: ${column.tint}`"></span>
       </div>
       <div class="menu-row">
         <input class="text-input" v-model="wipDraft" type="number" min="1" placeholder="WIP limit" aria-label="WIP limit" />

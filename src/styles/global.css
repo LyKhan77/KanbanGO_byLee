@@ -151,6 +151,17 @@ a { color: var(--c-link); text-decoration: underline; }
 .label-chip-steel { background: var(--c-tint-steel); }
 .label-chip-periwinkle { background: var(--c-tint-periwinkle); }
 
+/* ---- tint swatch (live preview beside tint selects, D-14b) ---- */
+.tint-swatch { display: inline-block; width: 16px; height: 16px; border: var(--border); flex: none; }
+.tint-swatch-olive { background: var(--c-tint-olive); }
+.tint-swatch-sage { background: var(--c-tint-sage); }
+.tint-swatch-salmon { background: var(--c-tint-salmon); }
+.tint-swatch-peach { background: var(--c-tint-peach); }
+.tint-swatch-lime { background: var(--c-tint-lime); }
+.tint-swatch-sky { background: var(--c-tint-sky); }
+.tint-swatch-steel { background: var(--c-tint-steel); }
+.tint-swatch-periwinkle { background: var(--c-tint-periwinkle); }
+
 /* ---- footer ---- */
 .footer-band {
   background: var(--c-canvas); color: var(--c-ink);
@@ -162,6 +173,11 @@ a { color: var(--c-link); text-decoration: underline; }
 .icon-label-nav a, .icon-label-nav span {
   font-family: var(--font-ui); font-weight: 700; font-size: 12px;
   text-transform: uppercase;
+  color: #555; /* dim: decorative labels + inactive link (D-14c) */
+  text-decoration: none;
+}
+.icon-label-nav a.router-link-active {
+  color: var(--c-ink); text-decoration: underline; /* current page stands out */
 }
 .footer-copy { margin-top: 4px; }
 
