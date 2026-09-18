@@ -8,6 +8,24 @@ import { TINTS } from '../types';
 const store = useKanban();
 const router = useRouter();
 
+// ---- board switcher ----
+function switchBoard(id: string) {
+  if (id && id !== store.activeBoardId) router.push(`/board/${id}`);
+}
+
+// ---- copy board link ----
+const copied = ref(false);
+function copyLink() {
+  navigator.clipboard
+    ?.writeText(window.location.href)
+    .then(() => {
+      copied.value = true;
+      window.setTimeout(() => {
+        copied.value = false;
+      }, 2000);
+    });
+}
+
 // ---- add column ----
 const open = ref(false);
 const title = ref('');
@@ -22,74 +40,21 @@ function add() {
     open.value = false;
   }
 }
-
-// ---- export / import ----
-const fileInput = ref<HTMLInputElement | null>(null);
-const importError = ref('');
-const importCount = ref(0);
-
-function slug(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'board'
-  );
-}
-
-function doExport() {
-  const boardId = store.activeBoardId;
-  if (!boardId) return;
-  const board = store.findBoard(boardId);
-  const json = store.exportBoard(boardId);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${slug(board.name)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function onFilePicked(e: Event) {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const res = store.importBoard(String(reader.result ?? ''));
-    if (res.ok) {
-      importCount.value = res.count;
-      importError.value = '';
-      // importBoard re-pointed activeBoardId to the first imported board
-      if (store.activeBoardId) router.replace(`/board/${store.activeBoardId}`);
-    } else {
-      importError.value = res.error;
-      importCount.value = 0;
-    }
-  };
-  reader.onerror = () => {
-    importError.value = 'Could not read the file.';
-    importCount.value = 0;
-  };
-  reader.readAsText(file);
-  input.value = '';
-}
 </script>
 
 <template>
   <div class="banner-actions">
-    <button type="button" class="sticker-yellow" :disabled="!store.activeBoardId" @click="doExport">
-      EXPORT
+    <select
+      class="text-input board-switcher"
+      :value="store.activeBoardId ?? ''"
+      aria-label="switch board"
+      @change="switchBoard(($event.target as HTMLSelectElement).value)"
+    >
+      <option v-for="b in store.boards" :key="b.id" :value="b.id">{{ b.name }}</option>
+    </select>
+    <button type="button" class="button-text-link banner-link" @click="copyLink">
+      {{ copied ? 'COPIED.' : 'COPY LINK' }}
     </button>
-    <button type="button" class="sticker-yellow" @click="fileInput?.click()">IMPORT</button>
-    <input
-      ref="fileInput"
-      type="file"
-      accept="application/json,.json"
-      class="file-input"
-      @change="onFilePicked"
-    />
     <button v-if="!open" type="button" class="sticker-yellow" @click="open = true">
       + ADD COLUMN
     </button>
@@ -103,25 +68,12 @@ function onFilePicked(e: Event) {
       <button type="button" class="button-text-link banner-link" @click="open = false">CANCEL</button>
     </form>
   </div>
-  <p v-if="importError" class="error-line banner-error">IMPORT FAILED: {{ importError }}</p>
-  <p v-if="importCount" class="import-ok">{{ importCount }} BOARD(S) IMPORTED.</p>
 </template>
 
 <style scoped>
 .banner-actions { display: flex; gap: var(--sp-sm); align-items: center; flex-wrap: wrap; }
 .add-form { display: flex; gap: var(--sp-sm); }
-.file-input { display: none; }
+.board-switcher { max-width: 200px; }
 /* white link variant — blue on the black banner reads poorly */
 .banner-link { color: var(--c-canvas); }
-/* spec §9 error line, readable on the black banner: white chip, blue underline text */
-.banner-error {
-  background: var(--c-canvas);
-  color: var(--c-link);
-  font-family: var(--font-body); font-size: 12px;
-  padding: 2px 8px; margin-top: var(--sp-xs);
-}
-.import-ok {
-  color: var(--c-canvas); font-family: var(--font-ui);
-  font-weight: 700; font-size: 11px; margin-top: var(--sp-xs);
-}
 </style>

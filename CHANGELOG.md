@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-18 — Navigation package: breadcrumb, board switcher, real footer EXPORT/IMPORT, copy board link
+
+### Context
+- Post-v1.1 UX work: board page had no visible back affordance (footer BOARDS link only), switching boards required two hops via the list, and the footer EXPORT/IMPORT labels were decorative spans while the real buttons lived in the board banner.
+
+### Changed
+- `src/views/BoardView.vue`: retro breadcrumb `HOME | BOARDS | <board name>` above the toolbar; BOARDS is a `RouterLink` to `/`.
+- `src/components/BoardBanner.vue`: board switcher `<select>` (all boards, change → `router.push`); `COPY LINK` button with transient `COPIED.` feedback; export/import logic removed (moved, not duplicated).
+- `src/components/AppShell.vue`: footer EXPORT/IMPORT are now real sticker-yellow buttons using the (moved) export/import logic; EXPORT disabled unless on a board route (store keeps the last `activeBoardId`, which would otherwise let the list page export a stale board); import status lines moved to the footer.
+
+### Evidence
+- `npm test` → 39/39 pass; `npm run build` exit 0.
+- Live browser (disposable test board, deleted afterwards; user's My Board 4a6a8861 untouched — 2 cards before and after): breadcrumb rendered `HOME|BOARDS|NAV TEST`; switcher switched to the user board and back (URLs `/board/4a6a8861…` ↔ `/board/0cb7d9ad…`); COPY LINK flipped to `COPIED.`; footer EXPORT produced a blob download named `nav-test.json`; EXPORT disabled on the list page; footer BOARDS link returned to `/`.
+
+### Impact
+- Board banner no longer holds export/import; footer is the single home for those actions. All nav affordances verified in the browser.
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-18 — Tint swatches + footer nav dim (cluster D remainder)
 
 ### Context

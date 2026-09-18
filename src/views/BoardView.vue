@@ -48,6 +48,13 @@ function clearFilters() {
 
 <template>
   <div v-if="store.activeBoard" class="board-page">
+    <p class="breadcrumb">
+      <RouterLink to="/">HOME</RouterLink>
+      <span class="crumb-sep">|</span>
+      <RouterLink to="/">BOARDS</RouterLink>
+      <span class="crumb-sep">|</span>
+      <span class="crumb-current">{{ store.activeBoard.name }}</span>
+    </p>
     <div class="board-toolbar">
       <input
         class="text-input toolbar-search"
@@ -108,4 +115,11 @@ function clearFilters() {
   display: flex; align-items: flex-start; gap: var(--sp-lg);
   overflow-x: auto; padding-bottom: var(--sp-md);
 }
+.breadcrumb {
+  font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  margin-bottom: var(--sp-sm);
+}
+.breadcrumb a { color: var(--c-link); }
+.crumb-sep { color: #555; padding: 0 6px; }
+.crumb-current { color: var(--c-ink); }
 </style>
