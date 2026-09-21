@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Column from '../components/Column.vue';
 import CardModal from '../components/CardModal.vue';
@@ -15,6 +15,29 @@ const filtersActive = computed(
   () => store.filters.query.trim() !== '' || store.filters.labelIds.length > 0,
 );
 
+// Undo toast (P0 fix): every card move — drag, keyboard up/down, or MOVE TO
+// — lands here via store.lastMove. role="status" + aria-live announces the
+// move to screen readers too, so this doubles as the move announcement.
+const moveToast = computed(() => {
+  const m = store.lastMove;
+  if (!m) return null;
+  try {
+    return { ...m, toTitle: store.findColumn(m.boardId, m.toColId).title };
+  } catch {
+    return null; // target column was deleted since the move — nothing to show
+  }
+});
+let toastTimer: ReturnType<typeof window.setTimeout> | undefined;
+watch(
+  () => store.lastMove,
+  (m) => {
+    if (toastTimer) window.clearTimeout(toastTimer);
+    if (m) toastTimer = window.setTimeout(() => store.clearLastMove(), 6000);
+  },
+);
+onBeforeUnmount(() => {
+  if (toastTimer) window.clearTimeout(toastTimer);
+});
 // Route guard: keep the store in sync with the URL; repair bad ids.
 watch(
   () => route.params.boardId,
@@ -98,6 +121,11 @@ function clearFilters() {
       :card-id="editingCard.cardId"
       @close="editingCard = null"
     />
+
+    <div v-if="moveToast" class="move-toast sticker-yellow" role="status" aria-live="polite">
+      <span>"{{ moveToast.cardTitle }}" moved to {{ moveToast.toTitle }}.</span>
+      <button type="button" class="button-text-link move-toast-undo" @click="store.undoLastMove()">UNDO</button>
+    </div>
   </div>
   <p v-else class="empty-state">NO BOARD FOUND.</p>
 </template>
@@ -122,4 +150,10 @@ function clearFilters() {
 .breadcrumb a { color: var(--c-link); }
 .crumb-sep { color: #555; padding: 0 6px; }
 .crumb-current { color: var(--c-ink); }
+.move-toast {
+  position: sticky; left: 0; bottom: var(--sp-lg); z-index: 20;
+  display: flex; gap: var(--sp-md); align-items: center;
+  width: max-content; margin-top: var(--sp-lg);
+}
+.move-toast-undo { color: var(--c-ink); }
 </style>

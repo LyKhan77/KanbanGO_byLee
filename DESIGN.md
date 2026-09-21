@@ -190,8 +190,8 @@ All seven share identical chrome: 1 px solid `{colors.frame-ink}` border, `{spac
 - Background `{colors.primary}`, text `{colors.on-primary}` (white), 1 px solid frame-ink border, type `{typography.body}` (Times Roman 14), padding 16 px, no radius.
 - One per page maximum. The brand's most aggressive attention-grab — never use it for anything except a top-tier sales message.
 
-**`phone-callout`** — top-right phone number ("1-800-213-DELL") rendered as red on the black banner.
-- Background `{colors.frame-ink}`, text `{colors.primary}`, type `{typography.heading-2}` Helvetica Bold 16, padding 4 × 8, no radius. Pinned to the right of the top banner on every page.
+**`save-status`** (formerly `phone-callout`) — top-right status readout on the black banner. In KanbanGo this replaced the inert period `phone-callout` placeholder with a truthful, functional signal of whether the current work is safely persisted.
+- Background `{colors.frame-ink}`, text `{colors.canvas}` in the default (saved) state, type `{typography.heading-2}` Helvetica Bold 14, padding 4 × 8, no radius. Switches to `{colors.primary}` text only when storage genuinely fails — red stays reserved for real urgency, never decoration. Pinned to the right of the top banner on every page.
 
 ### Stickers (GIF-style overlays)
 
@@ -283,4 +283,4 @@ All seven share identical chrome: 1 px solid `{colors.frame-ink}` border, `{spac
 - Don't add soft drop-shadows or atmospheric gradients. The brand has hard borders and flat fills; everything else reads as anachronism.
 - Don't crop or "tuck" product photos with `border-radius` or `clip-path`. The notch into the ribbon-card right edge is the framing — the photo itself stays a hard rectangle.
 - Don't pair two `{components.cta-block-red}` panels on the same page. The red fill is meant to be the singular attention pole.
-- Don't strip the `{components.phone-callout}` from the top banner. In 1996 the website existed to drive phone-call orders; the phone number IS the navigation.
+- Don't strip the `{components.save-status}` readout from the top banner, and don't make it decorative again — it exists to answer "is my work safe?", the one thing a local-storage-only tool must never leave the user guessing about.

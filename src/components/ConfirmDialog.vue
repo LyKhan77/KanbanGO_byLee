@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useModalKeys } from '../composables/useModalKeys';
 
 withDefaults(
   defineProps<{ message: string; confirmLabel?: string }>(),
@@ -8,15 +9,22 @@ withDefaults(
 const emit = defineEmits<{ confirm: []; cancel: [] }>();
 
 const cancelRef = ref<HTMLButtonElement>();
+const dialogRef = ref<HTMLElement>();
 
-// focus the safe action so Esc/Enter land inside the dialog
-onMounted(() => cancelRef.value?.focus());
+// focus the safe action so Enter/Space land inside the dialog; restore focus
+// to whatever opened it when it closes.
+let previouslyFocused: HTMLElement | null = null;
+onMounted(() => {
+  previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  cancelRef.value?.focus();
+});
+onBeforeUnmount(() => previouslyFocused?.focus());
+useModalKeys(dialogRef, () => emit('cancel'));
 </script>
 
 <template>
-  <!-- .stop so Escape inside a nested confirm does not also close the modal below -->
-  <div class="modal-backdrop" @click.self="emit('cancel')" @keydown.esc.stop="emit('cancel')">
-    <div class="modal-card confirm-card" role="alertdialog">
+  <div class="modal-backdrop" @click.self="emit('cancel')">
+    <div ref="dialogRef" class="modal-card confirm-card" role="alertdialog" aria-label="Confirm">
       <header class="ribbon-card-title">ARE YOU SURE?</header>
       <p class="confirm-message">{{ message }}</p>
       <footer class="confirm-foot">

@@ -19,4 +19,8 @@ const store = useKanban();
 
 <style scoped>
 .board-list { margin-top: var(--sp-lg); }
+/* P1 fix: the shared 36px .section-eyebrow was consuming a huge slab above a
+   near-empty list; de-emphasize it here without touching the shared class
+   (still used at full size for genuine product-family section headers). */
+.section-eyebrow { font-size: 20px; padding: 12px 16px; }
 </style>

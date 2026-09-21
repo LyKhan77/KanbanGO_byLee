@@ -38,12 +38,15 @@ a { color: var(--c-link); text-decoration: underline; }
   font-family: var(--font-ui); font-weight: 700; font-size: 16px;
   text-transform: uppercase;
 }
-.phone-callout {
-  color: var(--c-primary);
-  font-family: var(--font-ui); font-weight: 700; font-size: 16px;
+/* status readout (P1 fix: was a fake, inert "1-800" phone-callout) — red is
+   reserved for genuine urgency (save failure), not permanent decoration. */
+.save-status {
+  color: var(--c-canvas);
+  font-family: var(--font-ui); font-weight: 700; font-size: 14px;
   padding: 4px 8px;
   white-space: nowrap;
 }
+.save-status-warn { color: var(--c-primary); }
 .sticker-yellow {
   background: var(--c-yellow); color: var(--c-ink);
   border: var(--border);
@@ -119,7 +122,7 @@ a { color: var(--c-link); text-decoration: underline; }
 
 /* ---- touch targets: 44px minimum hit height (cluster C) ---- */
 .button-primary, .button-secondary, .button-text-link,
-.menu-toggle, .text-input, .chip-toggle,
+.menu-toggle, .text-input, .chip-toggle, .sticker-yellow,
 .icon-label-nav a {
   min-height: 44px;
 }

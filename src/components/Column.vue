@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import type { Column, TintKey } from '../types';
+import type { DragChangeEvent } from 'vue-draggable-next';
+import type { Card, Column, TintKey } from '../types';
 import { TINTS } from '../types';
 import KanbanCard from './KanbanCard.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -30,13 +31,55 @@ function quickAdd() {
   }
 }
 
-function onDragChange() {
-  // SortableJS already mutated column.cards in place; bump updatedAt.
-  store.touchBoard(props.boardId);
+// Header count freezes during an active drag (P0 fix): SortableJS reorders
+// the DOM live but only settles `column.cards` on drop, so reading the count
+// reactively mid-drag showed numbers that contradicted what was on screen.
+const dragging = ref(false);
+const displayCount = ref(props.column.cards.length);
+watch(
+  () => props.column.cards.length,
+  (n) => { if (!dragging.value) displayCount.value = n; },
+);
+function onDragStart() {
+  dragging.value = true;
+}
+function onDragEnd() {
+  dragging.value = false;
+  displayCount.value = props.column.cards.length;
+}
+
+// Records what SortableJS just did so it stays undoable (store.lastMove) —
+// drag mutates `column.cards` directly, so this is evidence, not the mutation.
+function onDragChange(evt: DragChangeEvent<Card>) {
+  if (evt.added) {
+    store.recordCardAdded(
+      props.boardId, props.column.id, evt.added.element.id, evt.added.newIndex, evt.added.element.title,
+    );
+  } else if (evt.removed) {
+    store.recordCardRemoved(props.boardId, props.column.id, evt.removed.element.id, evt.removed.oldIndex);
+  } else if (evt.moved) {
+    store.recordCardReordered(
+      props.boardId, props.column.id, evt.moved.element.id,
+      evt.moved.oldIndex, evt.moved.newIndex, evt.moved.element.title,
+    );
+  }
 }
 
 function openCard(cardId: string) {
   emit('open-card', props.column.id, cardId);
+}
+
+// Keyboard reorder (P0 fix): move-up/down buttons on every card need no drag
+// at all. Cross-column moves stay covered by the modal's MOVE TO select.
+function moveCardUp(cardId: string) {
+  const i = props.column.cards.findIndex((c) => c.id === cardId);
+  if (i <= 0) return;
+  store.moveCard(props.boardId, props.column.id, cardId, props.column.id, i - 1);
+}
+function moveCardDown(cardId: string) {
+  const i = props.column.cards.findIndex((c) => c.id === cardId);
+  if (i === -1 || i >= props.column.cards.length - 1) return;
+  store.moveCard(props.boardId, props.column.id, cardId, props.column.id, i + 1);
 }
 
 function saveRename() {
@@ -78,7 +121,7 @@ function doDeleteColumn() {
     <header class="column-header" :class="`section-eyebrow-${column.tint}`">
       <span class="column-title">{{ column.title }}</span>
       <span class="column-count">
-        {{ column.cards.length }}<template v-if="column.wipLimit != null">/{{ column.wipLimit }}</template>
+        {{ displayCount }}<template v-if="column.wipLimit != null">/{{ column.wipLimit }}</template>
       </span>
       <span v-if="overWip" class="new-burst-sticker">OVER!</span>
       <button type="button" class="menu-toggle" @click="menuOpen = !menuOpen">
@@ -119,15 +162,24 @@ function doDeleteColumn() {
       :list="column.cards"
       group="kanban"
       item-key="id"
+      handle=".card-title"
+      :distance="4"
+      @start="onDragStart"
+      @end="onDragEnd"
       @change="onDragChange"
     >
       <KanbanCard
-        v-for="card in column.cards"
+        v-for="(card, idx) in column.cards"
         :key="card.id"
         :board-id="boardId"
         :card="card"
         :column="column"
+        :show-reorder="true"
+        :is-first="idx === 0"
+        :is-last="idx === column.cards.length - 1"
         @open="openCard(card.id)"
+        @move-up="moveCardUp(card.id)"
+        @move-down="moveCardDown(card.id)"
       />
     </draggable>
     <template v-else>
@@ -173,6 +225,7 @@ function doDeleteColumn() {
 .column-header {
   display: flex; align-items: center; gap: var(--sp-sm);
   font-size: 16px; padding: 10px var(--sp-md);
+  position: sticky; top: 0; z-index: 2;
 }
 .column-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .column-count {

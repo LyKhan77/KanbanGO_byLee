@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-09-21 — Accessibility & UX fixes from Impeccable critique (P0-P3)
+
+### Context
+- Ran `impeccable critique` (dual-agent design review + detector/browser evidence) against the board list, board view, and card modal. Score 22/40, 2 P0 + 2 P1 + 2 P2 + 1 P3 issues. User picked "accessibility/keyboard first", "make decorative elements functional", and "all 7 issues".
+
+### Changed
+- `src/stores/kanban.ts`: `moveCard` now records `lastMove` for undo; added `recordCardAdded`/`recordCardRemoved`/`recordCardReordered` (drag evidence from `vue-draggable-next`), `undoLastMove`, `clearLastMove`.
+- `src/composables/useModalKeys.ts` (new): shared Tab focus-trap + document-level Escape handling with a nested-dialog stack guard.
+- `src/components/Column.vue`: keyboard move-up/down wiring, `distance=4` + `handle=".card-title"` on the draggable list, frozen header count during an active drag, drag-change events routed into the new store recorders, sticky column header.
+- `src/components/KanbanCard.vue`: title bar restructured into a flex row with two 24x24 move buttons, card title `text-transform: none` (was forced uppercase), `.card-more` link recolored to ink (was failing WCAG AA on 5/8 tint backgrounds).
+- `src/components/CardModal.vue`, `src/components/ConfirmDialog.vue`: adopt `useModalKeys`; Escape/Tab now handled on `document` instead of the backdrop element so they keep working regardless of where focus has wandered; `ConfirmDialog` restores focus to its invoker on close.
+- `src/components/AppShell.vue`, `src/styles/global.css`: inert `1-800-KANBANGO` phone number replaced by a functional `SAVED LOCALLY` / `NOT SAVED` status readout (red reserved for the genuine failure state); `.sticker-yellow` added to the 44px touch-target cluster.
+- `src/components/BoardBanner.vue`: `+ ADD COLUMN` moved first in the toolbar; dynamic rename/add inputs now focus via `watch + nextTick` instead of the ignored HTML `autofocus`.
+- `src/components/BoardRow.vue`: board name `text-transform: none`, `RENAME`/`DELETE` recolored to ink, same autofocus fix as BoardBanner.
+- `src/components/LabelPicker.vue`: wired the existing (previously unused) `store.deleteLabel` to a delete button per chip.
+- `src/views/BoardListView.vue`: shrank the 36px `BOARDS` eyebrow to 20px (scoped override, shared class untouched).
+- `src/views/BoardView.vue`: undo toast (`role="status" aria-live="polite"`) for every card move, auto-dismiss after 6s.
+- `DESIGN.md`: `phone-callout` component entry replaced with `save-status` so the doc no longer contradicts the implementation.
+- `.gitignore`: added `.impeccable/` (critique-run scratch, same treatment as `.cooper/`/`.sdd-scratch/`).
+
+### Evidence
+- `npm test` -> 41/41; `npx vue-tsc -b` -> 0 errors; `impeccable detect --json src` -> `[]`.
+- Live (Playwright against the running dev server): keyboard reorder swapped card order correctly with accurate disabled states at column boundaries; undo toast reversed a move; 25 real Tab presses stayed inside the card modal (previously escaped to footer buttons behind the backdrop); Escape closed the dialog regardless of focus position; focus returned to the invoking card button on close; nested delete-confirm closed independently of its parent modal on Escape.
+
+### Impact
+- No localStorage schema changes; `lastMove`/`pendingRemoval` are in-memory only.
+- `moveCard`'s public signature is unchanged; existing callers (`CardModal`'s MOVE TO) are unaffected.
+
+### Rollback
+- `git revert` the commit carrying this section.
+
 ## 2026-09-18 — Card expand/hide description (MORE/LESS)
 
 ### Context

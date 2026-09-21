@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useKanban } from '../stores/kanban';
 import { isOverdue } from '../utils';
+import { useModalKeys } from '../composables/useModalKeys';
 import LabelPicker from './LabelPicker.vue';
 import SubtaskList from './SubtaskList.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -13,6 +14,7 @@ const store = useKanban();
 // Remember where focus came from so it can go back when the modal closes.
 let previouslyFocused: HTMLElement | null = null;
 const titleInput = ref<HTMLInputElement>();
+const dialogRef = ref<HTMLElement>();
 onMounted(() => {
   previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   // HTML autofocus is ignored on dynamically rendered elements — focus explicitly.
@@ -49,6 +51,8 @@ function save() {
 }
 
 const confirmOpen = ref(false);
+// Pause this dialog's own trap while the nested delete-confirm is open on top of it.
+useModalKeys(dialogRef, () => emit('close'), computed(() => !confirmOpen.value));
 
 function remove() {
   confirmOpen.value = true;
@@ -70,8 +74,8 @@ function toggleLabel(labelId: string) {
 </script>
 
 <template>
-  <div class="modal-backdrop" @click.self="emit('close')" @keydown.esc="emit('close')">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-label="Edit card">
+  <div class="modal-backdrop" @click.self="emit('close')">
+    <div ref="dialogRef" class="modal-card" role="dialog" aria-modal="true" aria-label="Edit card">
       <header class="ribbon-card-title">EDIT CARD</header>
       <div class="modal-body">
         <label class="field">

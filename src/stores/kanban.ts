@@ -4,6 +4,18 @@ import type { Board, Column, Card, KanbanState, TintKey } from '../types';
 import { uid, nowISO, createStarterBoard } from '../utils';
 import * as storage from '../services/storage';
 
+// Undo affordance (P0 fix): the most recent card move (drag, keyboard
+// up/down, or MOVE TO), reversible via undoLastMove.
+export interface LastMove {
+  boardId: string;
+  cardId: string;
+  cardTitle: string;
+  fromColId: string;
+  fromIndex: number;
+  toColId: string;
+  toIndex: number;
+}
+
 function defaultState(): KanbanState {
   const b = createStarterBoard();
   return { version: 1, boards: [b], activeBoardId: b.id };
@@ -15,6 +27,10 @@ export const useKanban = defineStore('kanban', () => {
   const activeBoardId = ref<string | null>(init.activeBoardId);
   const filters = ref<{ query: string; labelIds: string[] }>({ query: '', labelIds: [] });
   const saveFailed = ref(false); // spec §9: storage full/unavailable → warn, keep in memory
+  const lastMove = ref<LastMove | null>(null);
+  // Cross-column drag fires `removed` on the source Column and `added` on the
+  // target Column as two separate events; this bridges them into one LastMove.
+  let pendingRemoval: { boardId: string; cardId: string; fromColId: string; fromIndex: number } | null = null;
 
   const activeBoard = computed<Board | null>(
     () => boards.value.find(b => b.id === activeBoardId.value) ?? null,
@@ -167,15 +183,68 @@ export const useKanban = defineStore('kanban', () => {
     touchBoard(boardId);
   }
 
-  function moveCard(boardId: string, fromColId: string, cardId: string, toColId: string, toIndex: number): void {
+  // Splice-only move, shared by moveCard and undoLastMove (the undo must not
+  // itself record a new undo entry).
+  function moveCardRaw(
+    boardId: string, fromColId: string, cardId: string, toColId: string, toIndex: number,
+  ): { fromIndex: number; toIndex: number; title: string } | null {
     const from = findColumn(boardId, fromColId);
     const to = findColumn(boardId, toColId);
     const i = from.cards.findIndex(c => c.id === cardId);
-    if (i === -1) return;
+    if (i === -1) return null;
     const [card] = from.cards.splice(i, 1);
     const idx = Math.max(0, Math.min(toIndex, to.cards.length));
     to.cards.splice(idx, 0, card);
     touchBoard(boardId);
+    return { fromIndex: i, toIndex: idx, title: card.title };
+  }
+
+  function moveCard(boardId: string, fromColId: string, cardId: string, toColId: string, toIndex: number): void {
+    const res = moveCardRaw(boardId, fromColId, cardId, toColId, toIndex);
+    if (res) {
+      lastMove.value = {
+        boardId, cardId, cardTitle: res.title,
+        fromColId, fromIndex: res.fromIndex, toColId, toIndex: res.toIndex,
+      };
+    }
+  }
+
+  // Drag-and-drop mutates column.cards directly via vue-draggable-next; these
+  // three record what just happened so it stays undoable and status counters
+  // stay in sync (spec: P0 "silent, irreversible drag-drop").
+  function recordCardRemoved(boardId: string, colId: string, cardId: string, fromIndex: number): void {
+    pendingRemoval = { boardId, cardId, fromColId: colId, fromIndex };
+    touchBoard(boardId);
+  }
+
+  function recordCardAdded(boardId: string, colId: string, cardId: string, toIndex: number, cardTitle: string): void {
+    if (pendingRemoval && pendingRemoval.cardId === cardId && pendingRemoval.boardId === boardId) {
+      lastMove.value = {
+        boardId, cardId, cardTitle,
+        fromColId: pendingRemoval.fromColId, fromIndex: pendingRemoval.fromIndex,
+        toColId: colId, toIndex,
+      };
+      pendingRemoval = null;
+    }
+    touchBoard(boardId);
+  }
+
+  function recordCardReordered(
+    boardId: string, colId: string, cardId: string, fromIndex: number, toIndex: number, cardTitle: string,
+  ): void {
+    lastMove.value = { boardId, cardId, cardTitle, fromColId: colId, fromIndex, toColId: colId, toIndex };
+    touchBoard(boardId);
+  }
+
+  function undoLastMove(): void {
+    const m = lastMove.value;
+    if (!m) return;
+    moveCardRaw(m.boardId, m.toColId, m.cardId, m.fromColId, m.fromIndex);
+    lastMove.value = null;
+  }
+
+  function clearLastMove(): void {
+    lastMove.value = null;
   }
 
   function exportBoard(boardId: string): string {
@@ -210,9 +279,10 @@ export const useKanban = defineStore('kanban', () => {
   }
 
   return {
-    boards, activeBoardId, filters, saveFailed, activeBoard, findBoard, findColumn, isOverWip, filteredCards, setActiveBoard,
-    touchBoard, createBoard, renameBoard, deleteBoard, addColumn, renameColumn, deleteColumn, addCard, findCard, updateCard,
-    deleteCard, addLabel, deleteLabel, addSubtask, toggleSubtask, deleteSubtask, setColumnTint, setWipLimit,
-    moveCard, exportBoard, importBoard,
+    boards, activeBoardId, filters, saveFailed, lastMove, activeBoard, findBoard, findColumn, isOverWip, filteredCards,
+    setActiveBoard, touchBoard, createBoard, renameBoard, deleteBoard, addColumn, renameColumn, deleteColumn, addCard,
+    findCard, updateCard, deleteCard, addLabel, deleteLabel, addSubtask, toggleSubtask, deleteSubtask, setColumnTint,
+    setWipLimit, moveCard, recordCardRemoved, recordCardAdded, recordCardReordered, undoLastMove, clearLastMove,
+    exportBoard, importBoard,
   };
 });

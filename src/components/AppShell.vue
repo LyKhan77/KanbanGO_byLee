@@ -9,6 +9,10 @@ const route = useRoute();
 const router = useRouter();
 // EXPORT only makes sense on the board page (store keeps last activeBoardId)
 const onBoard = computed(() => route.name === 'board');
+// P1 fix: this banner slot used to hold a fake, inert "1-800-KANBANGO" phone
+// number. It now reports the one thing users actually need to know here —
+// whether their work is safely on disk.
+const saveStatus = computed(() => (store.saveFailed ? 'NOT SAVED' : 'SAVED LOCALLY'));
 
 // ---- export / import (lives in the footer nav so those links are real) ----
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -69,7 +73,9 @@ function onFilePicked(e: Event) {
     <div class="page-frame-inner">
       <header class="top-banner">
         <h1>{{ title }}</h1>
-        <span class="phone-callout">1-800-KANBANGO</span>
+        <span class="save-status" :class="{ 'save-status-warn': store.saveFailed }" role="status">
+          {{ saveStatus }}
+        </span>
         <slot name="banner-action" />
       </header>
 

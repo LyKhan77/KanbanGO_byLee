@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useKanban } from '../stores/kanban';
 import type { TintKey } from '../types';
@@ -26,10 +26,18 @@ function copyLink() {
     });
 }
 
-// ---- add column ----
+// ---- add column (P1 fix: primary action, kept first in the toolbar) ----
 const open = ref(false);
 const title = ref('');
 const tint = ref<TintKey>('steel');
+const titleInput = ref<HTMLInputElement>();
+// HTML autofocus is ignored on elements rendered after initial mount — focus explicitly.
+watch(open, async (v) => {
+  if (v) {
+    await nextTick();
+    titleInput.value?.focus();
+  }
+});
 
 function add() {
   const boardId = store.activeBoardId;
@@ -44,6 +52,18 @@ function add() {
 
 <template>
   <div class="banner-actions">
+    <button v-if="!open" type="button" class="sticker-yellow" @click="open = true">
+      + ADD COLUMN
+    </button>
+    <form v-else class="add-form" @submit.prevent="add">
+      <input ref="titleInput" class="text-input" v-model="title" placeholder="column title" aria-label="column title" />
+      <select class="text-input" v-model="tint">
+        <option v-for="t in TINTS" :key="t" :value="t">{{ t }}</option>
+      </select>
+      <span class="tint-swatch" :class="`tint-swatch-${tint}`" :title="`tint: ${tint}`"></span>
+      <button type="submit" class="sticker-yellow">ADD</button>
+      <button type="button" class="button-text-link banner-link" @click="open = false">CANCEL</button>
+    </form>
     <select
       class="text-input board-switcher"
       :value="store.activeBoardId ?? ''"
@@ -55,18 +75,6 @@ function add() {
     <button type="button" class="button-text-link banner-link" @click="copyLink">
       {{ copied ? 'COPIED.' : 'COPY LINK' }}
     </button>
-    <button v-if="!open" type="button" class="sticker-yellow" @click="open = true">
-      + ADD COLUMN
-    </button>
-    <form v-else class="add-form" @submit.prevent="add">
-      <input class="text-input" v-model="title" placeholder="column title" aria-label="column title" autofocus />
-      <select class="text-input" v-model="tint">
-        <option v-for="t in TINTS" :key="t" :value="t">{{ t }}</option>
-      </select>
-      <span class="tint-swatch" :class="`tint-swatch-${tint}`" :title="`tint: ${tint}`"></span>
-      <button type="submit" class="sticker-yellow">ADD</button>
-      <button type="button" class="button-text-link banner-link" @click="open = false">CANCEL</button>
-    </form>
   </div>
 </template>
 
